@@ -8,13 +8,23 @@ export function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const post = blogPosts.find((p) => p.slug === params.slug);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+
+  const post = blogPosts.find((p) => p.slug === slug);
+
   if (!post) return {};
+
   return {
     title: `${post.title} | ${site.name}`,
     description: post.excerpt,
-    alternates: { canonical: `${site.url}/blog/${post.slug}` },
+    alternates: {
+      canonical: `${site.url}/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
@@ -24,15 +34,26 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function BlogPost({ params }: { params: { slug: string } }) {
-  const post = blogPosts.find((p) => p.slug === params.slug);
+export default async function BlogPost({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const post = blogPosts.find((p) => p.slug === slug);
+
   if (!post) notFound();
 
   return (
     <article className="container-page py-32">
-      <Link href="/#blog" className="inline-flex items-center gap-2 font-mono text-sm text-teal">
+      <Link
+        href="/#blog"
+        className="inline-flex items-center gap-2 font-mono text-sm text-teal"
+      >
         <ArrowLeft size={16} /> Back to articles
       </Link>
+
       <p className="mt-8 font-mono text-xs text-paper/40">
         {new Date(post.date).toLocaleDateString("en-US", {
           month: "long",
@@ -40,11 +61,18 @@ export default function BlogPost({ params }: { params: { slug: string } }) {
           year: "numeric",
         })}
       </p>
-      <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">{post.title}</h1>
-      <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/70">{post.excerpt}</p>
+
+      <h1 className="mt-3 font-display text-3xl font-bold sm:text-4xl">
+        {post.title}
+      </h1>
+
+      <p className="mt-6 max-w-2xl text-base leading-relaxed text-paper/70">
+        {post.excerpt}
+      </p>
+
       <p className="mt-10 max-w-2xl text-sm text-paper/50">
-        Full article coming soon. In the meantime, reach out via the contact section if you have
-        questions on this topic.
+        Full article coming soon. In the meantime, reach out via the contact
+        section if you have questions on this topic.
       </p>
     </article>
   );
